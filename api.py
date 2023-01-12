@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 import psycopg2
 import json
+import hashlib
 
 
 def get_db_connection():
@@ -57,28 +58,56 @@ class ProjectStart(Resource):
 
 
 class Login(Resource):
-    def get(self):
-        return {'login': 'world'}
+    def post(self):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        if json.loads(request.data) is not None:
+            data = json.loads(request.data)
+            print(data)
+            username = data['username']
+            ipaddress = data['ipaddress']
+            logindatetime = data['logindatetime']
+        else:
+            return 'id must be defined', 400
+        addQuery = '''insert into onlineusers 
+        (username,ipaddress,logindatetime)
+        values (%s,%s,%s)'''
+
+        cur.execute(addQuery, (username, ipaddress, logindatetime))
+        conn.commit()
+        cur.close()
+        conn.close()
 
 
 class Logout(Resource):
-    def get(self):
-        return {'logout': 'world'}
+    def delete(self):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        if json.loads(request.data) is not None:
+            data = json.loads(request.data)
+            print(data)
+            usernametemp = data['username']
+        else:
+            return 'id must be defined', 400
+
+        cur.execute('''delete from onlineusers where username = username''',usernametemp)
+        conn.commit()
+        cur.close()
+        conn.close()
 
 
 class UserList(Resource):
-    def get(self):
-        return {'userList': 'world'}
-
-
-class UserCreate(Resource):
     def get(self):
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''select * from users;''')
         users = cur.fetchall()
+        cur.close()
+        conn.close()
         return jsonify(users)
 
+
+class UserCreate(Resource):
     def post(self):
         conn = get_db_connection()
         cur = conn.cursor()
@@ -101,28 +130,64 @@ class UserCreate(Resource):
 
         cur.execute(addQuery, (username, firstname, middlename, lastname, birthdate, email, password))
         conn.commit()
+        cur.close()
+        conn.close()
 
 
 class Delete(Resource):
-    def get(self):
-        return {'hello': 'world'}
+    def delete(self):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        if json.loads(request.data) is not None:
+            data = json.loads(request.data)
+            print(data)
+            usernametemp = data['username']
+        else:
+            return 'id must be defined', 400
 
+        cur.execute('''delete from users where username = username''', usernametemp)
+        conn.commit()
+        cur.close()
+        conn.close()
 
 class Update(Resource):
-    def get(self):
-        return {'hello': 'world'}
+    def put(self,id):
+        print(id)
 
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        if json.loads(request.data) is not None:
+            data = json.loads(request.data)
+            print(data)
+            username = data['username']
+            firstname = data['firstname']
+            middlename = data['middlename']
+            print(middlename)
+            lastname = data['lastname']
+            birthdate = data['birthdate']
+            email = data['email']
+            password = data['password']
+        else:
+            return 'id must be defined', 400
+
+        updateQuery='''update users set firstname=%s, middlename=%s, lastname=%s, birthdate=%s, email=%s, password=%s where username=%s'''
+        cur.execute(updateQuery, (firstname,middlename,lastname,birthdate,email,password,id))
+
+        conn.commit()
+        cur.close()
+        conn.close()
 
 class OnlineUsers(Resource):
     def get(self):
-        return {
-            "username": "",
-            "ipaddress": "",
-            "logindatetime": ""
-        }
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('''select * from onlineusers;''')
+        onlineusers = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify(onlineusers)
 
-    def post(self):
-        pass
 
 
 api.add_resource(ProjectStart, '/')
@@ -131,8 +196,8 @@ api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(UserList, '/user/list')
 api.add_resource(UserCreate, '/user/create')
-api.add_resource(Delete, '/delete/<string:id>')
-api.add_resource(Update, '/update/<string:id>')
+api.add_resource(Delete, '/user/delete/<string:id>')
+api.add_resource(Update, '/user/update/<string:id>')
 api.add_resource(OnlineUsers, '/onlineusers')
 
 if __name__ == '__main__':
