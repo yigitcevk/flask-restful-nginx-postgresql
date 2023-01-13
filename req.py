@@ -13,13 +13,12 @@ user_data = {
             "middlename": "null",
             "lastname": "cevik",
             "birthdate": "1.1.1",
-            "email": "asdffggf@",
-            "password": "aadsyrw"}
+            "email": "notvalidate@gmail.com",
+            "password": "aadsyrwA4"}
 
 onlineusers_data = {
             "username": "yc",
-            "ipaddress": "192.168.0.183",
-            "logindatetime": "null"
+            "password": "aadsyrw"
 }
 
 update_path = "yc"
@@ -33,9 +32,10 @@ update_data = {
             "password": "aadsyrw"}
 
 
-#r = requests.post(endpoint+create_user, data=json.dumps(user_data))
+r = requests.post(endpoint+create_user, data=json.dumps(user_data))
 #r = requests.post(endpoint+onlineusers, data=json.dumps(onlineusers_data))
-r = requests.put(endpoint+update+update_path, data=json.dumps(update_data))
+#r = requests.put(endpoint+update+update_path, data=json.dumps(update_data))
 #r = requests.delete(endpoint+logout, data=json.dumps(onlineusers_data))
+print(r.content)
 
 r.status_code

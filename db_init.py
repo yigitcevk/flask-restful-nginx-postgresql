@@ -11,7 +11,7 @@ cur.execute('''create table if not EXISTS users (
     lastname varchar(30) DEFAULT NULL,
     birthdate varchar(30) DEFAULT NULL,
     email varchar(30) DEFAULT NULL,
-    password varchar(30) DEFAULT NULL,
+    password varchar(256) DEFAULT NULL,
 
     PRIMARY KEY (username)
 );''')
