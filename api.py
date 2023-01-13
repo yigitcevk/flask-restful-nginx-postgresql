@@ -5,7 +5,13 @@ from flask_restful import Resource, Api
 import psycopg2
 import json
 import hashlib
+from datetime import datetime
+import re
+import random
+import uuid
 
+pattern_password = re.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$")
+pattern_email = re.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$")
 
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
@@ -65,15 +71,29 @@ class Login(Resource):
             data = json.loads(request.data)
             print(data)
             username = data['username']
-            ipaddress = data['ipaddress']
-            logindatetime = data['logindatetime']
+            ipaddress = request.remote_addr
+            logindatetime = datetime.now()
+            password = data['password']
         else:
             return 'id must be defined', 400
-        addQuery = '''insert into onlineusers 
-        (username,ipaddress,logindatetime)
-        values (%s,%s,%s)'''
 
-        cur.execute(addQuery, (username, ipaddress, logindatetime))
+        cur.execute('''select password from users where username=username;''',(username))
+        fetch = (cur.fetchall()[2])
+        real_password=json.dumps(fetch)
+        real_password=real_password[2:len(real_password)-2]
+        print(real_password)
+
+        hashedText, salt = real_password.split(':')
+
+        print(hashlib.sha256(salt.encode() + password.encode()).hexdigest())
+        if hashedText == hashlib.sha256(salt.encode() + password.encode()).hexdigest():
+            addQuery = '''insert into onlineusers 
+            (username,ipaddress,logindatetime)
+            values (%s,%s,%s)'''
+            cur.execute(addQuery, (username, ipaddress, logindatetime))
+        else:
+            return 'password is wrong', 400
+
         conn.commit()
         cur.close()
         conn.close()
@@ -124,11 +144,16 @@ class UserCreate(Resource):
         else:
             return 'id must be defined', 400
 
-        addQuery = '''insert into users 
-        (username,firstname,middlename,lastname,birthdate,email,password)
-        values (%s,%s,%s,%s,%s,%s,%s)'''
+        if pattern_email.match(email) and pattern_password.match(password):
+            salt = uuid.uuid4().hex
+            hashed_password = hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+            addQuery = '''insert into users 
+            (username,firstname,middlename,lastname,birthdate,email,password)
+            values (%s,%s,%s,%s,%s,%s,%s)'''
+        else:
+            return 'password or email not satisfy', 400
 
-        cur.execute(addQuery, (username, firstname, middlename, lastname, birthdate, email, password))
+        cur.execute(addQuery, (username, firstname, middlename, lastname, birthdate, email, hashed_password))
         conn.commit()
         cur.close()
         conn.close()
@@ -149,6 +174,7 @@ class Delete(Resource):
         conn.commit()
         cur.close()
         conn.close()
+
 
 class Update(Resource):
     def put(self,id):
@@ -171,12 +197,17 @@ class Update(Resource):
         else:
             return 'id must be defined', 400
 
-        updateQuery='''update users set firstname=%s, middlename=%s, lastname=%s, birthdate=%s, email=%s, password=%s where username=%s'''
-        cur.execute(updateQuery, (firstname,middlename,lastname,birthdate,email,password,id))
+        if pattern_email.match(email) and pattern_password.match(password):
+            updateQuery = '''update users set firstname=%s, middlename=%s, lastname=%s, birthdate=%s, email=%s, password=%s where username=%s'''
+            cur.execute(updateQuery, (firstname, middlename, lastname, birthdate, email, password, id))
+        else:
+            return 'password or email not satisfy', 400
+
 
         conn.commit()
         cur.close()
         conn.close()
+
 
 class OnlineUsers(Resource):
     def get(self):
