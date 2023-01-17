@@ -13,6 +13,7 @@ import uuid
 pattern_password = re.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$")
 pattern_email = re.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$")
 
+
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
                             database="flaskapp_db",
@@ -77,10 +78,10 @@ class Login(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''select password from users where username=username;''',(username))
+        cur.execute('''select password from users where username=username;''', (username))
         fetch = (cur.fetchall()[2])
-        real_password=json.dumps(fetch)
-        real_password=real_password[2:len(real_password)-2]
+        real_password = json.dumps(fetch)
+        real_password = real_password[2:len(real_password) - 2]
         print(real_password)
 
         hashedText, salt = real_password.split(':')
@@ -110,7 +111,7 @@ class Logout(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''delete from onlineusers where username = username''',usernametemp)
+        cur.execute('''delete from onlineusers where username = username''', usernametemp)
         conn.commit()
         cur.close()
         conn.close()
@@ -177,7 +178,7 @@ class Delete(Resource):
 
 
 class Update(Resource):
-    def put(self,id):
+    def put(self, id):
         print(id)
 
         conn = get_db_connection()
@@ -203,7 +204,6 @@ class Update(Resource):
         else:
             return 'password or email not satisfy', 400
 
-
         conn.commit()
         cur.close()
         conn.close()
@@ -220,6 +220,17 @@ class OnlineUsers(Resource):
         return jsonify(onlineusers)
 
 
+class GetLogs(Resource):
+    def get(self):
+        try:
+            logs = ""
+            with open('/var/log/nginx/access.log', "r") as file:
+                logs += file.read()
+
+            return jsonify({'Logs': logs})
+        except:
+            return jsonify({'message': 'problem occurred'})
+
 
 api.add_resource(ProjectStart, '/')
 
@@ -230,6 +241,8 @@ api.add_resource(UserCreate, '/user/create')
 api.add_resource(Delete, '/user/delete/<string:id>')
 api.add_resource(Update, '/user/update/<string:id>')
 api.add_resource(OnlineUsers, '/onlineusers')
+api.add_resource(GetLogs, '/logs')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
