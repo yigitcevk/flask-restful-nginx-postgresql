@@ -1,4 +1,4 @@
-# flask-restful-crud-postgresql
+# flask-restful-nginx-postgresql
 
 
 RESTFUL flask application using json data format
