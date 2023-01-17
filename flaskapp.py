@@ -15,7 +15,7 @@ pattern_email = re.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$")
 
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
-                            database="flask_web_app_db",
+                            database="flaskapp_db",
                             user="yc",
                             password="labris",
                             port="5432")

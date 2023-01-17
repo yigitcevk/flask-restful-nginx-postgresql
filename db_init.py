@@ -1,7 +1,7 @@
 import psycopg2
 import os
 
-conn = psycopg2.connect(database="flask_web_app_db", user="yc", password="labris", host="127.0.0.1", port="5432")
+conn = psycopg2.connect(database="flaskapp_db", user="yc", password="labris", host="127.0.0.1", port="5432")
 cur = conn.cursor()
 
 cur.execute('''create table if not EXISTS users (
