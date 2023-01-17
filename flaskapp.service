@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve flaskapp
+After=network.target
+
+[Service]
+User=labris
+Group=www-data
+WorkingDirectory=/home/labris/PycharmProjects/flaskapp
+Environment="PATH=/home/labris/PycharmProjects/flaskapp/venv/bin"
+ExecStart=/home/labris/PycharmProjects/flaskapp/venv/bin/uwsgi --ini flaskapp.ini
+
+[Install]
+WantedBy=multi-user.target
