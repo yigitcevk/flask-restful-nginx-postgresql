@@ -1,4 +1,3 @@
-import parser
 
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
@@ -7,7 +6,6 @@ import json
 import hashlib
 from datetime import datetime
 import re
-import random
 import uuid
 
 pattern_password = re.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$")
@@ -78,7 +76,8 @@ class Login(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''select password from users where username=username;''', (username))
+        cur.execute('''select password from users where username LIKE username ;''', (username))
+
         fetch = (cur.fetchall()[2])
         real_password = json.dumps(fetch)
         real_password = real_password[2:len(real_password) - 2]
@@ -111,7 +110,7 @@ class Logout(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''delete from onlineusers where username = username''', usernametemp)
+        cur.execute('''delete from onlineusers where username LIKE username''', usernametemp)
         conn.commit()
         cur.close()
         conn.close()
@@ -171,7 +170,7 @@ class Delete(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''delete from users where username = username''', usernametemp)
+        cur.execute('''delete from users where username LIKE username''', usernametemp)
         conn.commit()
         cur.close()
         conn.close()
