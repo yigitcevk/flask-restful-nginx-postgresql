@@ -76,9 +76,9 @@ class Login(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''select password from users where username LIKE username ;''', (username))
+        cur.execute('''select password from users where username=%s;''', (username,))
 
-        fetch = (cur.fetchall()[2])
+        fetch = (cur.fetchall())
         real_password = json.dumps(fetch)
         real_password = real_password[2:len(real_password) - 2]
         print(real_password)
@@ -88,7 +88,7 @@ class Login(Resource):
         print(hashlib.sha256(salt.encode() + password.encode()).hexdigest())
         if hashedText == hashlib.sha256(salt.encode() + password.encode()).hexdigest():
             addQuery = '''insert into onlineusers 
-            (username,ipaddress,logindatetime)
+            (username,ipaddress,logindatetime,)
             values (%s,%s,%s)'''
             cur.execute(addQuery, (username, ipaddress, logindatetime))
         else:
@@ -110,7 +110,7 @@ class Logout(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''delete from onlineusers where username LIKE username''', usernametemp)
+        cur.execute('''delete from onlineusers where username=%s''', (usernametemp,))
         conn.commit()
         cur.close()
         conn.close()
@@ -148,7 +148,7 @@ class UserCreate(Resource):
             salt = uuid.uuid4().hex
             hashed_password = hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
             addQuery = '''insert into users 
-            (username,firstname,middlename,lastname,birthdate,email,password)
+            (username,firstname,middlename,lastname,birthdate,email,password,)
             values (%s,%s,%s,%s,%s,%s,%s)'''
         else:
             return 'password or email not satisfy', 400
@@ -170,7 +170,7 @@ class Delete(Resource):
         else:
             return 'id must be defined', 400
 
-        cur.execute('''delete from users where username LIKE username''', usernametemp)
+        cur.execute('''delete from users where username LIKE username''', (usernametemp,))
         conn.commit()
         cur.close()
         conn.close()
@@ -199,7 +199,7 @@ class Update(Resource):
 
         if pattern_email.match(email) and pattern_password.match(password):
             updateQuery = '''update users set firstname=%s, middlename=%s, lastname=%s, birthdate=%s, email=%s, password=%s where username=%s'''
-            cur.execute(updateQuery, (firstname, middlename, lastname, birthdate, email, password, id))
+            cur.execute(updateQuery, (firstname, middlename, lastname, birthdate, email, password, id,))
         else:
             return 'password or email not satisfy', 400
 
