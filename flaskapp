@@ -5,6 +5,6 @@ server {
 
     location / {
         include uwsgi_params;
-        uwsgi_pass unix:/home/labris/PycharmProjects/flaskapp/flaskapp.sock;
+        uwsgi_pass unix:/home/l/PycharmProjects/flaskapp/flaskapp.sock;
     }
 }
